@@ -1,10 +1,10 @@
-// --- VARIABLES GLOBALES ---
+//variables
 
 let products = [];
 let currentView = 'menu-view';
 let nextId = 1;
 
-// --- UTILERÍA DE NAVEGACIÓN ---
+//navegacion
 
 function showView(viewId) {
     document.getElementById(currentView).classList.add('hidden');
@@ -12,7 +12,7 @@ function showView(viewId) {
     currentView = viewId;
 }
 
-// --- MANEJO DE VISTAS Y BOTONES ---
+//botones
 
 document.getElementById('btn-show-add').addEventListener('click', () => {
     showView('add-product-view');
@@ -31,7 +31,7 @@ document.getElementById('btn-back-from-stock').addEventListener('click', () => {
     showView('menu-view');
 });
 
-// --- FUNCIONALIDAD: AGREGAR PRODUCTO ---
+//agregar producto
 
 document.getElementById('add-product-form').addEventListener('submit', addProduct);
 
@@ -43,7 +43,7 @@ function addProduct(event) {
     const price = document.getElementById('product-price').value;
     const quantity = document.getElementById('product-quantity').value;
 
-    // REQUISITO 1: VALIDAR TODOS LOS CAMPOS
+    //validacion campos
     if (!name || !type || !price || !quantity) {
         alert('Debes completar todos los campos');
         return;
@@ -52,13 +52,13 @@ function addProduct(event) {
     const numericPrice = parseFloat(price);
     const numericQuantity = parseInt(quantity);
 
-    // REQUISITO 2: VALIDAR QUE PRECIO Y CANTIDAD SEAN NÚMEROS POSITIVOS (>= 1)
+    //validacion numero precios
     if (isNaN(numericPrice) || numericPrice < 1 || isNaN(numericQuantity) || numericQuantity < 1) {
         alert('El Precio y la Cantidad inicial deben ser números válidos y mayores o iguales a 1');
         return;
     }
 
-    // REQUISITO 3: CREAR ID ÚNICO
+    //id
     const newProduct = {
         id: nextId++,
         name: name,
@@ -69,13 +69,13 @@ function addProduct(event) {
 
     products.push(newProduct);
 
-    // Redirección al stock sin mensaje (REQUISITO)
+    //volver
     document.getElementById('add-product-form').reset();
     renderStock();
     showView('stock-view');
 }
 
-// --- FUNCIONALIDAD: MOSTRAR Y ACTUALIZAR STOCK ---
+//mostrar y actualizar stock
 
 function renderStock() {
     const stockList = document.getElementById('stock-list');
@@ -124,9 +124,9 @@ function updateStock() {
         alert('No se detectaron cambios en el stock.');
     }
 
-    // Vuelve a renderizar la tabla para actualizar el color rojo si cambió el stock bajo
+    // cambia color stock a rojo
     renderStock();
 }
 
-// Inicialización: Mostrar el menú al cargar
+// inicializacion menu
 showView('menu-view');
