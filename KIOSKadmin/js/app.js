@@ -81,7 +81,9 @@ function renderStock() {
     const stockList = document.getElementById('stock-list');
     stockList.innerHTML = '';
 
-    products.forEach(product => {
+    for (let i = 0; i < products.length; i++) {
+        const product = products[i];
+        
         const row = document.createElement('tr');
         row.dataset.productId = product.id;
 
@@ -96,7 +98,7 @@ function renderStock() {
             </td>
         `;
         stockList.appendChild(row);
-    });
+    }
 }
 
 document.getElementById('btn-update-stock').addEventListener('click', updateStock);
@@ -105,18 +107,26 @@ function updateStock() {
     let hasChanges = false;
     const quantityInputs = document.querySelectorAll('#stock-table input[type="number"]');
 
-    quantityInputs.forEach(input => {
+    // Bucle para revisar cada campo de cantidad que el usuario puede haber modificado
+    for (let j = 0; j < quantityInputs.length; j++) {
+        const input = quantityInputs[j];
         const productId = parseInt(input.dataset.id);
         const newQuantity = parseInt(input.value);
 
-        // Buscar el producto en el array
-        const productIndex = products.findIndex(p => p.id === productId);
+        
+        for (let k = 0; k < products.length; k++) {
+            const productInArray = products[k];
 
-        if (productIndex !== -1 && products[productIndex].quantity !== newQuantity) {
-            products[productIndex].quantity = newQuantity;
-            hasChanges = true;
+            if (productInArray.id === productId) {
+                
+                if (productInArray.quantity !== newQuantity) {
+                    productInArray.quantity = newQuantity;
+                    hasChanges = true;
+                }
+                break; 
+            }
         }
-    });
+    }
 
     if (hasChanges) {
         alert('Stock actualizado correctamente.');
