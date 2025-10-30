@@ -1,41 +1,41 @@
 //variables
 
 let products = [];
-let pantallaActual = 'vistaMenu';
-let proximoId = 1;
+let currentView = 'menu-view';
+let nextId = 1;
 
 //navegacion
 
-function mostrarPantalla(viewId) {
-    document.getElementById(pantallaActual).classList.add('hidden');
+function showView(viewId) {
+    document.getElementById(currentView).classList.add('hidden');
     document.getElementById(viewId).classList.remove('hidden');
-    pantallaActual = viewId;
+    currentView = viewId;
 }
 
 //botones
 
 document.getElementById('btn-show-add').addEventListener('click', () => {
-    mostrarPantalla('vistaAgregarProducto');
+    showView('add-product-view');
 });
 
 document.getElementById('btn-show-stock').addEventListener('click', () => {
-    dibujarTabla();
-    mostrarPantalla('vistaStockActual');
+    renderStock();
+    showView('stock-view');
 });
 
 document.getElementById('btn-back-from-add').addEventListener('click', () => {
-    mostrarPantalla('vistaMenu');
+    showView('menu-view');
 });
 
 document.getElementById('btn-back-from-stock').addEventListener('click', () => {
-    mostrarPantalla('vistaMenu');
+    showView('menu-view');
 });
 
 //agregar producto
 
-document.getElementById('add-product-form').addEventListener('submit', agregarProductoNuevo);
+document.getElementById('add-product-form').addEventListener('submit', addProduct);
 
-function agregarProductoNuevo(event) {
+function addProduct(event) {
     event.preventDefault();
 
     const name = document.getElementById('product-name').value.trim();
@@ -60,7 +60,7 @@ function agregarProductoNuevo(event) {
 
     //id
     const newProduct = {
-        id: proximoId++,
+        id: nextId++,
         name: name,
         type: type,
         price: numericPrice,
@@ -71,13 +71,13 @@ function agregarProductoNuevo(event) {
 
     //volver
     document.getElementById('add-product-form').reset();
-    dibujarTabla();
-    mostrarPantalla('vistaStockActual');
+    renderStock();
+    showView('stock-view');
 }
 
 //mostrar y actualizar stock
 
-function dibujarTabla() {
+function renderStock() {
     const stockList = document.getElementById('stock-list');
     stockList.innerHTML = '';
 
@@ -101,13 +101,13 @@ function dibujarTabla() {
     }
 }
 
-document.getElementById('btn-update-stock').addEventListener('click', guardarCambiosStock);
+document.getElementById('btn-update-stock').addEventListener('click', updateStock);
 
-function guardarCambiosStock() {
+function updateStock() {
     let hasChanges = false;
     const quantityInputs = document.querySelectorAll('#stock-table input[type="number"]');
 
-    
+    // Bucle para revisar cada campo de cantidad que el usuario puede haber modificado
     for (let j = 0; j < quantityInputs.length; j++) {
         const input = quantityInputs[j];
         const productId = parseInt(input.dataset.id);
@@ -135,8 +135,8 @@ function guardarCambiosStock() {
     }
 
     // cambia color stock a rojo
-    dibujarTabla();
+    renderStock();
 }
 
 // inicializacion menu
-mostrarPantalla('vistaMenu');
+showView('menu-view');
