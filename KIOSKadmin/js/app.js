@@ -1,41 +1,41 @@
 //variables
 
 let products = [];
-let currentView = 'menu-view';
-let nextId = 1;
+let pantallaActual = 'vistaMenu';
+let proximoId = 1;
 
 //navegacion
 
-function showView(viewId) {
-    document.getElementById(currentView).classList.add('hidden');
+function mostrarPantalla(viewId) {
+    document.getElementById(pantallaActual).classList.add('hidden');
     document.getElementById(viewId).classList.remove('hidden');
-    currentView = viewId;
+    pantallaActual = viewId;
 }
 
 //botones
 
 document.getElementById('btn-show-add').addEventListener('click', () => {
-    showView('add-product-view');
+    mostrarPantalla('vistaAgregarProducto');
 });
 
 document.getElementById('btn-show-stock').addEventListener('click', () => {
-    renderStock();
-    showView('stock-view');
+    dibujarTabla();
+    mostrarPantalla('vistaStockActual');
 });
 
 document.getElementById('btn-back-from-add').addEventListener('click', () => {
-    showView('menu-view');
+    mostrarPantalla('vistaMenu');
 });
 
 document.getElementById('btn-back-from-stock').addEventListener('click', () => {
-    showView('menu-view');
+    mostrarPantalla('vistaMenu');
 });
 
 //agregar producto
 
-document.getElementById('add-product-form').addEventListener('submit', addProduct);
+document.getElementById('add-product-form').addEventListener('submit', agregarProductoNuevo);
 
-function addProduct(event) {
+function agregarProductoNuevo(event) {
     event.preventDefault();
 
     const name = document.getElementById('product-name').value.trim();
@@ -60,7 +60,7 @@ function addProduct(event) {
 
     //id
     const newProduct = {
-        id: nextId++,
+        id: proximoId++,
         name: name,
         type: type,
         price: numericPrice,
@@ -71,13 +71,13 @@ function addProduct(event) {
 
     //volver
     document.getElementById('add-product-form').reset();
-    renderStock();
-    showView('stock-view');
+    dibujarTabla();
+    mostrarPantalla('vistaStockActual');
 }
 
 //mostrar y actualizar stock
 
-function renderStock() {
+function dibujarTabla() {
     const stockList = document.getElementById('stock-list');
     stockList.innerHTML = '';
 
@@ -101,13 +101,13 @@ function renderStock() {
     }
 }
 
-document.getElementById('btn-update-stock').addEventListener('click', updateStock);
+document.getElementById('btn-update-stock').addEventListener('click', guardarCambiosStock);
 
-function updateStock() {
+function guardarCambiosStock() {
     let hasChanges = false;
     const quantityInputs = document.querySelectorAll('#stock-table input[type="number"]');
 
-    // Bucle para revisar cada campo de cantidad que el usuario puede haber modificado
+    
     for (let j = 0; j < quantityInputs.length; j++) {
         const input = quantityInputs[j];
         const productId = parseInt(input.dataset.id);
@@ -135,8 +135,8 @@ function updateStock() {
     }
 
     // cambia color stock a rojo
-    renderStock();
+    dibujarTabla();
 }
 
 // inicializacion menu
-showView('menu-view');
+mostrarPantalla('vistaMenu');
