@@ -26,5 +26,19 @@
     "price": 80,
     "quantity": 90,
     "id": 1764018929529
+  },
+  {
+    "name": "tomas",
+    "type": "Snacks",
+    "price": 500,
+    "quantity": 40,
+    "id": 1764019426031
+  },
+  {
+    "name": "tomas",
+    "type": "Bebidas",
+    "price": 500,
+    "quantity": 40,
+    "id": 1764019438335
   }
 ]
