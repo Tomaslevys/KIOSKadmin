@@ -1,1 +1,9 @@
-[]
+[
+  {
+    "id": "d747a300-e26b-4cb2-9f91-126d333227a2",
+    "name": "chester",
+    "type": "Cigarrillos",
+    "price": 300,
+    "quantity": 4
+  }
+]
