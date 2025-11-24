@@ -1,130 +1,142 @@
-// URL DEL BACKEND
-const API_URL = "http://localhost:3000/productos";
+//variables
 
 let products = [];
-let currentView = "menu-view";
+let currentView = 'menu-view';
+let nextId = 1;
 
-// ---------------------
-// CAMBIAR DE VISTA
-// ---------------------
-function showView(id) {
-    document.getElementById(currentView).classList.add("hidden");
-    document.getElementById(id).classList.remove("hidden");
-    currentView = id;
+//navegacion
+
+function showView(viewId) {
+    document.getElementById(currentView).classList.add('hidden');
+    document.getElementById(viewId).classList.remove('hidden');
+    currentView = viewId;
 }
 
-// ---------------------
-// CARGAR PRODUCTOS DEL SERVIDOR
-// ---------------------
-async function loadProducts() {
-    const res = await fetch(API_URL);
-    products = await res.json();
-}
+//botones
 
-// ---------------------
-// BOTONES
-// ---------------------
-document.getElementById("btn-show-add").onclick = () =>
-    showView("add-product-view");
-
-document.getElementById("btn-show-stock").onclick = async () => {
-    await loadProducts();
-    renderStock();
-    showView("stock-view");
-};
-
-document.getElementById("btn-back-from-add").onclick = () =>
-    showView("menu-view");
-
-document.getElementById("btn-back-from-stock").onclick = () =>
-    showView("menu-view");
-
-// ---------------------
-// AGREGAR PRODUCTO
-// ---------------------
-document.getElementById("add-product-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const newProduct = {
-        name: document.getElementById("product-name").value,
-        type: document.getElementById("product-type").value,
-        price: parseFloat(document.getElementById("product-price").value),
-        quantity: parseInt(document.getElementById("product-quantity").value)
-    };
-
-    await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newProduct)
-    });
-
-    // Recargar productos
-    await loadProducts();
-
-    showView("stock-view");
-    renderStock();
+document.getElementById('btn-show-add').addEventListener('click', () => {
+    showView('add-product-view');
 });
 
-// ---------------------
-// MOSTRAR STOCK
-// ---------------------
-function renderStock() {
-    const tbody = document.getElementById("stock-list");
-    tbody.innerHTML = "";
+document.getElementById('btn-show-stock').addEventListener('click', () => {
+    renderStock();
+    showView('stock-view');
+});
 
-    products.forEach(product => {
-        const row = document.createElement("tr");
+document.getElementById('btn-back-from-add').addEventListener('click', () => {
+    showView('menu-view');
+});
+
+document.getElementById('btn-back-from-stock').addEventListener('click', () => {
+    showView('menu-view');
+});
+
+//agregar producto
+
+document.getElementById('add-product-form').addEventListener('submit', addProduct);
+
+function addProduct(event) {
+    event.preventDefault();
+
+    const name = document.getElementById('product-name').value.trim();
+    const type = document.getElementById('product-type').value;
+    const price = document.getElementById('product-price').value;
+    const quantity = document.getElementById('product-quantity').value;
+
+    //validacion campos
+    if (!name || !type || !price || !quantity) {
+        alert('Debes completar todos los campos');
+        return;
+    }
+
+    const numericPrice = parseFloat(price);
+    const numericQuantity = parseInt(quantity);
+
+    //validacion numero precios
+    if (isNaN(numericPrice) || numericPrice < 1 || isNaN(numericQuantity) || numericQuantity < 1) {
+        alert('El Precio y la Cantidad inicial deben ser números válidos y mayores o iguales a 1');
+        return;
+    }
+
+    //id
+    const newProduct = {
+        id: nextId++,
+        name: name,
+        type: type,
+        price: numericPrice,
+        quantity: numericQuantity
+    };
+
+    products.push(newProduct);
+
+    //volver
+    document.getElementById('add-product-form').reset();
+    renderStock();
+    showView('stock-view');
+}
+
+//mostrar y actualizar stock
+
+function renderStock() {
+    const stockList = document.getElementById('stock-list');
+    stockList.innerHTML = '';
+
+    for (let i = 0; i < products.length; i++) {
+        const product = products[i];
+        
+        const row = document.createElement('tr');
+        row.dataset.productId = product.id;
+
+        const quantityClass = product.quantity < 5 ? 'low-stock' : '';
 
         row.innerHTML = `
             <td>${product.name}</td>
             <td>${product.type}</td>
-            <td>$${product.price}</td>
+            <td>$${product.price.toFixed(2)}</td>
             <td>
-                <input type="number" value="${product.quantity}" min="0" data-id="${product.id}">
-            </td>
-            <td>
-                <button class="delete-btn" data-id="${product.id}">❌</button>
+                <input type="number" min="0" value="${product.quantity}" class="${quantityClass}" data-id="${product.id}">
             </td>
         `;
-
-        tbody.appendChild(row);
-    });
-
-    // ELIMINAR PRODUCTO
-    document.querySelectorAll(".delete-btn").forEach(btn => {
-        btn.onclick = () => deleteProduct(btn.dataset.id);
-    });
+        stockList.appendChild(row);
+    }
 }
 
-// ---------------------
-// ACTUALIZAR STOCK
-// ---------------------
-document.getElementById("btn-update-stock").onclick = async () => {
-    const inputs = document.querySelectorAll("#stock-list input");
+document.getElementById('btn-update-stock').addEventListener('click', updateStock);
 
-    for (let input of inputs) {
-        const id = input.dataset.id;
+function updateStock() {
+    let hasChanges = false;
+    const quantityInputs = document.querySelectorAll('#stock-table input[type="number"]');
+
+    // Bucle para revisar cada campo de cantidad que el usuario puede haber modificado
+    for (let j = 0; j < quantityInputs.length; j++) {
+        const input = quantityInputs[j];
+        const productId = parseInt(input.dataset.id);
         const newQuantity = parseInt(input.value);
 
-        await fetch(`${API_URL}/${id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ quantity: newQuantity })
-        });
+        
+        for (let k = 0; k < products.length; k++) {
+            const productInArray = products[k];
+
+            if (productInArray.id === productId) {
+                
+                if (productInArray.quantity !== newQuantity) {
+                    productInArray.quantity = newQuantity;
+                    hasChanges = true;
+                }
+                break; 
+            }
+        }
     }
 
-    alert("Stock actualizado.");
-};
+    if (hasChanges) {
+        alert('Stock actualizado correctamente.');
+    } else {
+        alert('No se detectaron cambios en el stock.');
+    }
 
-// ---------------------
-// ELIMINAR PRODUCTO
-// ---------------------
-async function deleteProduct(id) {
-    await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-
-    await loadProducts();
+    // cambia color stock a rojo
     renderStock();
 }
 
-// ---------------------
-showView("menu-view");
+// inicializacion menu
+showView('menu-view');
