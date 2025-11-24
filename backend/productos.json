@@ -1,0 +1,30 @@
+[
+  {
+    "name": "tipo",
+    "type": "Bebidas",
+    "price": 500,
+    "quantity": 5,
+    "id": 1764018836100
+  },
+  {
+    "name": "to",
+    "type": "Cigarrillos",
+    "price": 50,
+    "quantity": 5,
+    "id": 1764018848292
+  },
+  {
+    "name": "to5f",
+    "type": "Cigarrillos",
+    "price": 50,
+    "quantity": 5,
+    "id": 1764018854348
+  },
+  {
+    "name": "tomas",
+    "type": "Snacks",
+    "price": 80,
+    "quantity": 90,
+    "id": 1764018929529
+  }
+]
