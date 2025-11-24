@@ -1,24 +1,25 @@
-//variables
+// frontend KIOSKadmin/js/app.js
 
 let products = [];
 let currentView = 'menu-view';
-let nextId = 1;
 
-//navegacion
+// URL base de la API (mismo ordenador)
+const API_BASE = '/api/products';
 
+// Navegacion
 function showView(viewId) {
     document.getElementById(currentView).classList.add('hidden');
     document.getElementById(viewId).classList.remove('hidden');
     currentView = viewId;
 }
 
-//botones
-
+// botones
 document.getElementById('btn-show-add').addEventListener('click', () => {
     showView('add-product-view');
 });
 
-document.getElementById('btn-show-stock').addEventListener('click', () => {
+document.getElementById('btn-show-stock').addEventListener('click', async () => {
+    await fetchProducts();
     renderStock();
     showView('stock-view');
 });
@@ -31,112 +32,145 @@ document.getElementById('btn-back-from-stock').addEventListener('click', () => {
     showView('menu-view');
 });
 
-//agregar producto
-
+// FORM add
 document.getElementById('add-product-form').addEventListener('submit', addProduct);
 
-function addProduct(event) {
-    event.preventDefault();
-
-    const name = document.getElementById('product-name').value.trim();
-    const type = document.getElementById('product-type').value;
-    const price = document.getElementById('product-price').value;
-    const quantity = document.getElementById('product-quantity').value;
-
-    //validacion campos
-    if (!name || !type || !price || !quantity) {
-        alert('Debes completar todos los campos');
-        return;
+async function fetchProducts() {
+    try {
+        const res = await fetch(API_BASE);
+        products = await res.json();
+    } catch (err) {
+        console.error(err);
+        alert('Error al cargar productos desde el servidor');
     }
-
-    const numericPrice = parseFloat(price);
-    const numericQuantity = parseInt(quantity);
-
-    //validacion numero precios
-    if (isNaN(numericPrice) || numericPrice < 1 || isNaN(numericQuantity) || numericQuantity < 1) {
-        alert('El Precio y la Cantidad inicial deben ser números válidos y mayores o iguales a 1');
-        return;
-    }
-
-    //id
-    const newProduct = {
-        id: nextId++,
-        name: name,
-        type: type,
-        price: numericPrice,
-        quantity: numericQuantity
-    };
-
-    products.push(newProduct);
-
-    //volver
-    document.getElementById('add-product-form').reset();
-    renderStock();
-    showView('stock-view');
 }
 
-//mostrar y actualizar stock
+async function addProduct(event) {
+    event.preventDefault();
+    const name = document.getElementById('product-name').value.trim();
+    const type = document.getElementById('product-type').value;
+    const price = parseFloat(document.getElementById('product-price').value);
+    const quantity = parseInt(document.getElementById('product-quantity').value);
 
+    if (!name || !type || isNaN(price) || isNaN(quantity) || price < 1 || quantity < 1) {
+        alert('Completá todos los campos correctamente');
+        return;
+    }
+
+    // enviar al backend
+    try {
+        const res = await fetch(API_BASE, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, type, price, quantity })
+        });
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error || 'Error al crear producto');
+        }
+        document.getElementById('add-product-form').reset();
+        await fetchProducts();
+        renderStock();
+        showView('stock-view');
+    } catch (err) {
+        console.error(err);
+        alert('No se pudo crear el producto');
+    }
+}
+
+// render y update
 function renderStock() {
     const stockList = document.getElementById('stock-list');
     stockList.innerHTML = '';
 
-    for (let i = 0; i < products.length; i++) {
-        const product = products[i];
-        
-        const row = document.createElement('tr');
-        row.dataset.productId = product.id;
+    products.forEach(product => {
+        const tr = document.createElement('tr');
+        tr.dataset.productId = product.id;
 
-        const quantityClass = product.quantity < 5 ? 'low-stock' : '';
+        const lowClass = product.quantity < 5 ? 'low-stock' : '';
 
-        row.innerHTML = `
+        tr.innerHTML = `
             <td>${product.name}</td>
             <td>${product.type}</td>
-            <td>$${product.price.toFixed(2)}</td>
+            <td>$${Number(product.price).toFixed(2)}</td>
             <td>
-                <input type="number" min="0" value="${product.quantity}" class="${quantityClass}" data-id="${product.id}">
+                <input type="number" min="0" value="${product.quantity}" data-id="${product.id}" class="${lowClass}">
+            </td>
+            <td>
+                <button class="btn small delete-btn" data-id="${product.id}">Eliminar</button>
             </td>
         `;
-        stockList.appendChild(row);
-    }
+        stockList.appendChild(tr);
+    });
+
+    // agregar listeners a botones eliminar y input change para cambiar clase visual
+    document.querySelectorAll('#stock-list .delete-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const id = e.target.dataset.id;
+            if (!confirm('¿Eliminar este producto?')) return;
+            try {
+                const res = await fetch(`${API_BASE}/${id}`, { method: 'DELETE' });
+                if (!res.ok) throw new Error('No se pudo eliminar');
+                await fetchProducts();
+                renderStock();
+            } catch (err) {
+                console.error(err);
+                alert('Error al eliminar producto');
+            }
+        });
+    });
+
+    document.querySelectorAll('#stock-list input[type="number"]').forEach(input => {
+        input.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value);
+            if (isNaN(val)) return;
+            if (val < 5) e.target.classList.add('low-stock');
+            else e.target.classList.remove('low-stock');
+        });
+    });
 }
 
 document.getElementById('btn-update-stock').addEventListener('click', updateStock);
 
-function updateStock() {
-    let hasChanges = false;
-    const quantityInputs = document.querySelectorAll('#stock-table input[type="number"]');
+async function updateStock() {
+    const inputs = document.querySelectorAll('#stock-list input[type="number"]');
+    let anyChange = false;
 
-    // Bucle para revisar cada campo de cantidad que el usuario puede haber modificado
-    for (let j = 0; j < quantityInputs.length; j++) {
-        const input = quantityInputs[j];
-        const productId = parseInt(input.dataset.id);
-        const newQuantity = parseInt(input.value);
-
-        
-        for (let k = 0; k < products.length; k++) {
-            const productInArray = products[k];
-
-            if (productInArray.id === productId) {
-                
-                if (productInArray.quantity !== newQuantity) {
-                    productInArray.quantity = newQuantity;
-                    hasChanges = true;
+    for (const input of inputs) {
+        const id = input.dataset.id;
+        const newQ = parseInt(input.value);
+        const prod = products.find(p => p.id === id);
+        if (!prod) continue;
+        if (prod.quantity !== newQ) {
+            // actualizar en backend
+            try {
+                const res = await fetch(`${API_BASE}/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ quantity: newQ })
+                });
+                if (!res.ok) {
+                    console.error('Error actualizando', id);
+                } else {
+                    anyChange = true;
                 }
-                break; 
+            } catch (err) {
+                console.error(err);
             }
         }
     }
 
-    if (hasChanges) {
+    if (anyChange) {
         alert('Stock actualizado correctamente.');
     } else {
-        alert('No se detectaron cambios en el stock.');
+        alert('No hubo cambios en el stock.');
     }
-
-    // cambia color stock a rojo
+    await fetchProducts();
     renderStock();
 }
 
-// inicializacion menu
-showView('menu-view');
+// Inicial
+(async function init() {
+    await fetchProducts();
+    showView('menu-view');
+})();
