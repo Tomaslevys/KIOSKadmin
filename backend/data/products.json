@@ -4,6 +4,13 @@
     "name": "chester",
     "type": "Cigarrillos",
     "price": 300,
-    "quantity": 4
+    "quantity": 5
+  },
+  {
+    "id": "c9566cc0-e2d8-45d2-84ba-be76e58ea523",
+    "name": "prime",
+    "type": "Bebidas",
+    "price": 400,
+    "quantity": 6
   }
 ]

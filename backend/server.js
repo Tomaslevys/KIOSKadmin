@@ -1,6 +1,6 @@
 const path = require('path');
 const express = require('express');
-const morgan = require('morgan');
+
 const cors = require('cors');
 
 const productsRouter = require('./routes/products');
@@ -9,7 +9,6 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middlewares
-app.use(morgan('dev'));
 app.use(cors());
 app.use(express.json());
 
